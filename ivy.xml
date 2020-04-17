@@ -1,0 +1,17 @@
+<ivy-module version="2.0">
+	<info organisation="uk.co.stikman" module="stikutils" />
+
+	<publications>
+    	<artifact name="StikUtils" ext="jar" type="jar"/>
+  	</publications>
+
+	<dependencies>
+		<dependency org="org.json" name="json" rev="20141113" />
+		<dependency org="commons-io" name="commons-io" rev="2.4" />
+	</dependencies>
+
+
+
+
+
+</ivy-module>
