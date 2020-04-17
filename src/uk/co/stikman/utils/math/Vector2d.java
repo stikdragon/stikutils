@@ -1,7 +1,5 @@
 package uk.co.stikman.utils.math;
 
-import com.sun.org.apache.regexp.internal.RE;
-
 import uk.co.stikman.utils.GwtIncompatible;
 
 public class Vector2d {
