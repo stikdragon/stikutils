@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 import uk.co.stikman.csv.CSVWriter;
 
+
 public class CSVExporter implements DataTableExport {
 	private OutputStream	output;
 	private Charset			encoding	= StandardCharsets.UTF_8;
@@ -25,7 +26,7 @@ public class CSVExporter implements DataTableExport {
 			if (isHeader()) {
 				writer.startRecord();
 				for (int i = 0; i < fldcnt; ++i)
-					writer.writeValue(dt.getFieldByIndex(i).getName(), CSVWriter.DataType.TEXT);
+					writer.writeValue(dt.getField(i).getActualFieldDisplay(), CSVWriter.DataType.TEXT);
 				writer.endRecord();
 			}
 			for (DataRecord rec : dt) {

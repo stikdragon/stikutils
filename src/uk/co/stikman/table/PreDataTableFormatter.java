@@ -9,10 +9,9 @@ import java.util.Map;
 
 /**
  * This one is very similar to the {@link TextDataTableFormatter} except it
- * sticks it in a <div> with
+ * sticks it in a &lt;div&gt; with &lt;pre&gt; tags for each bit so you can jam
+ * it in an html page somewhere. also escapes values so should be safe
  * 
- * <pre>
- * tags for each bit
  * @author Stik
  *
  */
@@ -91,7 +90,7 @@ public class PreDataTableFormatter implements DataTableFormatter {
 	}
 
 	protected String getValueClass(DataRecord rec, int fld) {
-		return columnClasses.get(rec.getTable().getFieldByIndex(fld).getName());
+		return columnClasses.get(rec.getTable().getField(fld).getName());
 	}
 
 	protected boolean preRender(StringBuilder sb, DataRecord rec, int fld) {

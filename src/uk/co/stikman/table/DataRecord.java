@@ -1,18 +1,12 @@
 package uk.co.stikman.table;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
-public class DataRecord implements Serializable {
+public abstract class DataRecord implements Iterable<Object> {
 
-	private static final long	serialVersionUID	= -184894188287545964L;
-	private DataTable			table;
-	private List<Object>		values				= new ArrayList<>();
-
-	public DataRecord() {
-
-	}
+	private DataTable table;
 
 	public DataRecord(DataTable table) {
 		this.table = table;
@@ -22,17 +16,9 @@ public class DataRecord implements Serializable {
 		return table;
 	}
 
-	public Object getValue(int idx) {
-		if (idx >= values.size())
-			return null;
-		return values.get(idx);
-	}
+	public abstract Object getValue(int idx);
 
-	public void setValue(int idx, Object o) {
-		while (values.size() <= idx)
-			values.add(null);
-		values.set(idx, o);
-	}
+	public abstract void setValue(int idx, Object o);
 
 	public void setValue(int idx, int n) {
 		setValue(idx, Integer.valueOf(n));
@@ -42,10 +28,23 @@ public class DataRecord implements Serializable {
 		setValue(idx, Double.valueOf(d));
 	}
 
-	public void setValues(Object... vals) {
-		for (Object o : vals)
-			values.add(o);
+	public void setValue(String field, int n) {
+		setValue(table.getField(field).getIndex(), n);
 	}
+	
+	public void setValue(String field, double d) {
+		setValue(table.getField(field).getIndex(), d);
+	}
+	
+	public void setValue(String field, Object o) {
+		setValue(table.getField(field).getIndex(), o);
+	}
+	
+	public Object getValue(String field) {
+		return getValue(table.getField(field).getIndex());
+	}
+	
+	public abstract void setValues(Object... vals);
 
 	public String getString(int i) {
 		Object o = getValue(i);
@@ -58,30 +57,29 @@ public class DataRecord implements Serializable {
 		Object o = getValue(i);
 		if (o == null)
 			return 0;
-		return ((Integer) o).intValue();
+		if (o instanceof Number)
+			return ((Number) o).intValue();
+		return Integer.parseInt(o.toString());
 	}
 
 	public double getDouble(int i) {
 		Object o = getValue(i);
 		if (o == null)
 			return 0.0;
-		return ((Double) o).doubleValue();
-
+		if (o instanceof Number)
+			return ((Number) o).doubleValue();
+		return Double.parseDouble(o.toString());
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		String sep = "";
-		for (Object o : values) {
+		for (Object o : this) {
 			sb.append(sep).append(o);
 			sep = ", ";
 		}
 		return sb.toString();
-	}
-
-	public List<Object> getValues() {
-		return values;
 	}
 
 	public int getInt(String fld) {
@@ -95,5 +93,51 @@ public class DataRecord implements Serializable {
 	public double getDouble(String fld) {
 		return getDouble(table.getField(fld).getIndex());
 	}
+
+	/**
+	 * Removes this record from its parent table. If it's not in a table, it
+	 * does nothign
+	 */
+	public void remove() {
+		if (table == null)
+			return;
+		table.remove(this);
+		table = null;
+	}
+
+	/**
+	 * Removes a value from the datarecord. If it's outside of the range then it
+	 * does nothing
+	 * 
+	 * @param idx
+	 */
+	abstract void removeValue(int idx);
+
+	/**
+	 * This is an optional operation that has no effect on behavior whatsoever.
+	 * It should be called after modifications to a record's data have been
+	 * finished, and some implementations of <code>DataRecord</code> may use it
+	 * as a indication they can tidy up memory internally.
+	 * 
+	 * Eg. when the 5th item was added to a datarecord it might have extended
+	 * its array of values from 4 to 8, wasting 24 bytes of storage. Calling
+	 * <code>tidy</code> lets it trim it back down to exactly the storage needed
+	 */
+	public void tidy() {
+
+	}
+
+	public void toStream(DataOutputStream dos) throws IOException {
+		throw new RuntimeException("toStream not supported");
+	}
+
+	public void fromStream(DataInputStream dis) throws IOException {
+		throw new RuntimeException("toStream not supported");
+	}
+	
+	void changed() {
+		table.recordChanged(this);
+	}
+
 
 }
