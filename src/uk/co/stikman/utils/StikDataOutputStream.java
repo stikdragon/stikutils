@@ -66,4 +66,8 @@ public class StikDataOutputStream extends FilterOutputStream {
 		out.write(tmp, 0, 8);
 	}
 
+	public void writeFloat(float f) throws IOException {
+		writeInt(Float.floatToIntBits(f));
+	}
+
 }

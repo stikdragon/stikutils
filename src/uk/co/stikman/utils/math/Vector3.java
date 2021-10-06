@@ -88,7 +88,15 @@ public class Vector3 {
 	}
 
 	public final Vector3 normalize() {
-		float in = (float) (1.0f / Math.sqrt((x * x) + (y * y) + (z * z)));
+		float f = (float) Math.sqrt((x * x) + (y * y) + (z * z));
+		if (f == 0.0f) {
+			x = 0;
+			y = 0;
+			z = 0;
+			return this;
+		}
+
+		float in = 1.0f / f;
 		x *= in;
 		y *= in;
 		z *= in;
@@ -117,10 +125,11 @@ public class Vector3 {
 		return this;
 	}
 
-	public void copy(Vector3 v) {
+	public Vector3 copy(Vector3 v) {
 		this.x = v.x;
 		this.y = v.y;
 		this.z = v.z;
+		return this;
 	}
 
 	@Override
@@ -185,6 +194,24 @@ public class Vector3 {
 		this.x += n.x * f;
 		this.y += n.y * f;
 		this.z += n.z * f;
+		return this;
+	}
+
+	public Vector3 add(float dx, float dy, float dz) {
+		x += dx;
+		y += dy;
+		z += dz;
+		return this;
+	}
+
+	public static Vector3 sub(Vector3 a, Vector3 b, Vector3 out) {
+		return a.sub(b, out);
+	}
+
+	public Vector3 copy(Vector3i v) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
 		return this;
 	}
 

@@ -7,6 +7,7 @@ import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Random;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -212,6 +213,19 @@ public class Utils extends GwtUtils {
 		char[] res = new char[len];
 		for (int i = 0; i < res.length; ++i)
 			res[i] = pat[i % n];
+		return new String(res);
+	}
+
+	private static final char[] RANDOM_STRING_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
+
+	public static String randomStringId(int len) {
+		return randomStringId(len, new Random());
+	}
+
+	public static String randomStringId(int len, Random rng) {
+		char[] res = new char[len];
+		for (int i = 0; i < len; ++i) 
+			res[i] = RANDOM_STRING_CHARS[rng.nextInt(RANDOM_STRING_CHARS.length)];
 		return new String(res);
 	}
 

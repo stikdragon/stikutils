@@ -1,5 +1,6 @@
 package uk.co.stikman.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.EOFException;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -120,6 +121,10 @@ public class StikDataInputStream extends FilterInputStream {
 	public byte[] readBytes(int len, byte[] res) throws IOException {
 		readFully(res, 0, len);
 		return res;
+	}
+
+	public float readFloat() throws IOException {
+		return Float.intBitsToFloat(readInt());
 	}
 
 	public int getMaxLen() {

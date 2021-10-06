@@ -273,4 +273,28 @@ public class Vector2 {
 		return this;
 	}
 
+	public Vector2 add(float dx, float dy) {
+		x += dx;
+		y += dy;
+		return this;
+	}
+
+	public Vector2 subLocal(Vector2 dv) {
+		x -= dv.x;
+		y -= dv.y;
+		return this;
+	}
+
+	public Vector2 copy(Vector2i v) {
+		this.x = v.x;
+		this.y = v.y;
+		return this;
+	}
+
+	public Vector2 sub(Vector2i vi) {
+		this.x -= vi.x;
+		this.y -= vi.y;
+		return this;
+	}
+
 }

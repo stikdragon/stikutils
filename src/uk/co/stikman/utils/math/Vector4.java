@@ -57,6 +57,14 @@ public class Vector4 {
 		return dest;
 	}
 
+	public static Vector4 sub(Vector4 a, Vector4 b, Vector4 dest) {
+		dest.x = a.x - b.x;
+		dest.y = a.y - b.y;
+		dest.z = a.z - b.z;
+		dest.w = a.w - b.w;
+		return dest;
+	}
+
 	public final Vector4 sub(Vector4 v2) {
 		x -= v2.x;
 		y -= v2.y;
@@ -118,11 +126,12 @@ public class Vector4 {
 		return this;
 	}
 
-	public void copy(Vector4 v) {
+	public Vector4 copy(Vector4 v) {
 		this.x = v.x;
 		this.y = v.y;
 		this.z = v.z;
 		this.w = v.w;
+		return this;
 	}
 
 	public static void lerp(Vector4 a, Vector4 b, float f, Vector4 res) {
@@ -137,7 +146,7 @@ public class Vector4 {
 	public String toString() {
 		return x + "," + y + "," + z + "," + w;
 	}
-	
+
 	/**
 	 * formats to <code>dp</code> decimal places
 	 * 
@@ -148,7 +157,6 @@ public class Vector4 {
 	public String toString(int dp) {
 		return String.format("%." + dp + "f, %." + dp + "f, %." + dp + "f, %." + dp + "f", x, y, z, w);
 	}
-
 
 	@Override
 	public int hashCode() {
@@ -181,10 +189,19 @@ public class Vector4 {
 		return true;
 	}
 
-	public void set(Vector3 v) {
+	public Vector4 set(Vector3 v) {
 		x = v.x;
 		y = v.y;
 		z = v.z;
 		w = 1;
+		return this;
 	}
+
+	public void set(float x, float y, float z) {
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		this.w = 1;
+	}
+
 }

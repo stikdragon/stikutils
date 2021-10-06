@@ -1,37 +1,42 @@
 <project default="jar" xmlns:ivy="antlib:org.apache.ivy.ant">
 
-	<property name="version" value="2" />	
+	<property name="version" value="1.4" />
 
 	<target name="clean">
 		<delete dir="build" />
 	</target>
 
 	<path id="cp">
-		<fileset dir="lib">
-			<include name="**/*.jar" />
+		<fileset dir="lib/ivy">
+			<include name="json-*.jar" />
+			<include name="junit-*.jar" />
 		</fileset>
 	</path>
 
+	<target name="showPaths">
+		<pathconvert property="classpath.path" refid="cp" />
+		<echo message="classpath = ${classpath.path}" />
+	</target>
+
+
 	<target name="compile" depends="clean">
 		<mkdir dir="build/classes" />
-		<javac srcdir="src" destdir="build/classes" includeantruntime="false">
-			<classpath refid="cp" />
+		<javac srcdir="src" destdir="build/classes" includeantruntime="false" modulepathref="cp">
 		</javac>
 	</target>
 
 	<target name="resolve" description="retrieve dependencies with ivy">
 		<ivy:retrieve pattern="lib/ivy/[artifact](-[classifier])-[revision].[ext]" />
 	</target>
-	
+
 
 	<target name="jar" depends="compile">
 		<mkdir dir="build/jar" />
 
-		<jar destfile="build/jar/stikutils-${version}.jar">
+		<jar destfile="build/jar/stikutils.jar">
 			<fileset dir="build/classes" />
 			<fileset dir="src">
-				<include name="**/*.java" />
-				<include name="**/*.gwt.xml" />
+				<!--<include name="**/*.java" />-->
 			</fileset>
 		</jar>
 	</target>
@@ -40,9 +45,9 @@
 	might be nothing to resolve.  the ivy:publish task doesn't seem to work 
 	otherwise -->
 	<target name="publish" depends="resolve,jar" description="Publish this build into repository">
-	    <ivy:publish resolver="internal" pubrevision="${version}" status="release" overwrite="true">
-	        <artifacts pattern="build/jar/[artifact].[ext]"/>
-	    </ivy:publish>
+		<ivy:publish resolver="internal" pubrevision="${version}" status="release" overwrite="true">
+			<artifacts pattern="build/jar/[artifact].[ext]" />
+		</ivy:publish>
 	</target>
 
 

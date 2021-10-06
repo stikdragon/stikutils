@@ -67,6 +67,12 @@ public class Rect {
 		return this;
 	}
 
+	public Rect setBounds(Vector2 v) {
+		this.w = v.x;
+		this.h = v.y;
+		return this;
+	}
+	
 	@Override
 	public boolean equals(Object ob) {
 		if (ob == null)
@@ -166,6 +172,34 @@ public class Rect {
 		}
 	}
 
+
+	public Rect centreIn(Rect container) {
+		float dx = container.w - w;
+		float dy = container.h - h;
+		x = container.x + dx / 2;
+		y = container.y + dy / 2;
+		return this;
+	}
+
+	public Rect centreIn(int w, int h) {
+		float dx = w - this.w;
+		float dy = h - this.h;
+		this.x = x + dx / 2;
+		this.y = y + dy / 2;
+		return this;
+	}
+
+	/**
+	 * Round everything to integer (with a simple cast)
+	 */
+	public void quantize() {
+		y = (int) y;
+		w = (int) w;
+		h = (int) h;
+		x = (int) x;
+	}
+
+	
 	public void adjust(float amt) {
 		x += amt;
 		y += amt;
@@ -189,5 +223,6 @@ public class Rect {
 		res.y = y + h / 2.0f;
 		return res;
 	}
+
 
 }

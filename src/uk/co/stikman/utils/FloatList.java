@@ -1,36 +1,35 @@
 package uk.co.stikman.utils;
 
-public class IntList {
-	public interface IntListConsumer {
-		void go(int n);
+public class FloatList {
+	public interface FloatListConsumer {
+		void go(float n);
 	}
 
-	public int[]	list;
+	public float[]	list;
 	private int		size;
-	private int		increment	= 50;
+	private int		increment	= 500;
 
-	public IntList() {
-		list = new int[increment];
+	public FloatList() {
+		list = new float[increment];
 		size = 0;
 	}
 
-	public IntList(int prealloc) {
+	public FloatList(int prealloc) {
 		if (prealloc < increment)
 			prealloc = increment;
-		list = new int[prealloc];
+		list = new float[prealloc];
 		size = 0;
 	}
 
-	public final void add(int val) {
+	public final void add(float val) {
 		set(size, val);
 	}
-
 	
-	public void add(int[] data, int off, int len) {
+	public void add(float[] data, int off, int len) {
 		int n = size + len;
 		if (n >= list.length) {
 			n = list.length + len + increment;
-			int[] tmp = new int[n];
+			float[] tmp = new float[n];
 			System.arraycopy(list, 0, tmp, 0, size);
 			list = tmp;
 		}
@@ -39,9 +38,10 @@ public class IntList {
 		size += len;
 	}
 	
-	public final void set(int index, int val) {
+
+	public final void set(int index, float val) {
 		if (index >= list.length) {
-			int[] tmp = new int[index + 1 + increment];
+			float[] tmp = new float[index + 1 + increment];
 			System.arraycopy(list, 0, tmp, 0, size);
 			list = tmp;
 		}
@@ -56,7 +56,7 @@ public class IntList {
 		list[index] = val;
 	}
 
-	public final int get(int index) {
+	public final float get(int index) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException(Integer.toString(index));
 		return list[index];
@@ -85,31 +85,35 @@ public class IntList {
 	public void clear() {
 		size = 0;
 	}
+	
+	public void collapse() {
+		size = 0;
+		list = new float[increment];
+	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+		long start = System.currentTimeMillis();
 		for (int i = 0; i < size; ++i) {
 			if (i == size - 1)
 				sb.append(list[i]);
 			else
 				sb.append(list[i]).append(", ");
+			if (System.currentTimeMillis() - start > 250) {
+				sb.append(" ...(truncated)");
+				break;
+			}
 		}
 		return sb.toString();
 	}
 
-	public int last() {
+	public float last() {
 		if (size == 0)
 			throw new IndexOutOfBoundsException("List is empty");
 		return list[size - 1];
 	}
 
-	/**
-	 * 
-	 * allocates space for this log
-	 * 
-	 * @param size
-	 */
 	public void setSize(int size) {
 		if (size <= this.size) {
 			this.size = size;
@@ -122,7 +126,7 @@ public class IntList {
 		return size == 0;
 	}
 
-	public int removeLast() {
+	public float removeLast() {
 		if (size < 1)
 			throw new IndexOutOfBoundsException("No more elements");
 		--size;
@@ -136,7 +140,7 @@ public class IntList {
 	 * 
 	 * @return
 	 */
-	public int[] toArray() {
+	public float[] toArray() {
 		return list;
 	}
 
@@ -145,13 +149,13 @@ public class IntList {
 	 * 
 	 * @return
 	 */
-	public int[] toSizedArray() {
-		int[] res = new int[size];
+	public float[] toSizedArray() {
+		float[] res = new float[size];
 		System.arraycopy(list, 0, res, 0, size);
 		return res;
 	}
 
-	public void forEach(IntListConsumer consumer) {
+	public void forEach(FloatListConsumer consumer) {
 		for (int i = 0; i < size; ++i)
 			consumer.go(list[i]);
 	}

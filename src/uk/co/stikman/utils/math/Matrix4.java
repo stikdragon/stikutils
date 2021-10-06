@@ -396,7 +396,7 @@ public class Matrix4 {
 		return tmpFA;
 	}
 
-	public void copy(Matrix4 from) {
+	public Matrix4 copy(Matrix4 from) {
 		m00 = from.m00;
 		m01 = from.m01;
 		m02 = from.m02;
@@ -413,6 +413,7 @@ public class Matrix4 {
 		m31 = from.m31;
 		m32 = from.m32;
 		m33 = from.m33;
+		return this;
 	}
 
 	public Matrix4 makeOrtho(float left, float right, float bottom, float top, float near, float far) {
