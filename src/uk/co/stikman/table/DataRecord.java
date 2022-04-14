@@ -9,6 +9,8 @@ public abstract class DataRecord implements Iterable<Object> {
 	private DataTable table;
 
 	public DataRecord(DataTable table) {
+		if (table == null)
+			throw new IllegalArgumentException("Table cannot be null.");
 		this.table = table;
 	}
 
@@ -46,6 +48,18 @@ public abstract class DataRecord implements Iterable<Object> {
 	
 	public abstract void setValues(Object... vals);
 
+	public String getString(DataField f) {
+		return getString(f.getIndex());
+	}
+	
+	public int getInt(DataField f) {
+		return getInt(f.getIndex());
+	}
+	
+	public double getDouble(DataField f) {
+		return getDouble(f.getIndex());
+	}
+	
 	public String getString(int i) {
 		Object o = getValue(i);
 		if (o == null)
@@ -59,16 +73,18 @@ public abstract class DataRecord implements Iterable<Object> {
 			return 0;
 		if (o instanceof Number)
 			return ((Number) o).intValue();
-		return Integer.parseInt(o.toString());
+		String s = o.toString();
+		return s.isEmpty() ? 0 : Integer.parseInt(s);
 	}
 
 	public double getDouble(int i) {
 		Object o = getValue(i);
 		if (o == null)
-			return 0.0;
+			return 0.0d;
 		if (o instanceof Number)
 			return ((Number) o).doubleValue();
-		return Double.parseDouble(o.toString());
+		String s = o.toString();
+		return s.isEmpty() ? 0.0d : Double.parseDouble(s);
 	}
 
 	@Override

@@ -27,6 +27,7 @@ public class DataRecordLocal extends DataRecord {
 	}
 
 	public void setValues(Object... vals) {
+		values = new ArrayList<>(vals.length);
 		for (Object o : vals)
 			values.add(o);
 		changed();
@@ -39,9 +40,10 @@ public class DataRecordLocal extends DataRecord {
 
 	@Override
 	void removeValue(int idx) {
-		if (values.size() >= idx)
+		if (values.size() > idx) {
 			values.remove(idx);
-		changed();
+			changed();
+		}
 	}
 
 	@Override
@@ -62,6 +64,28 @@ public class DataRecordLocal extends DataRecord {
 		values = new ArrayList<>();
 		while (n-- > 0) 
 			values.add(DTStreamUtil.readObject(dis));
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + values.hashCode();
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		DataRecordLocal other = (DataRecordLocal) obj;
+		if (!values.equals(other.values))
+			return false;
+		return true;
 	}
 
 }

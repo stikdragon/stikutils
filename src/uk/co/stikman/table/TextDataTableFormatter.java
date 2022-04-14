@@ -32,9 +32,9 @@ public class TextDataTableFormatter implements DataTableFormatter {
 	}
 
 	public String format(DataTable dt) {
-		int[] widths = new int[dt.fields.size()];
+		int[] widths = new int[dt.fields().size()];
 		for (int i = 0; i < widths.length; ++i)
-			widths[i] = Math.max(getMinColWidth(), dt.fields.get(i).getName().length());
+			widths[i] = Math.max(getMinColWidth(), dt.fields().get(i).getName().length());
 		for (DataRecord r : dt)
 			for (int i = 0; i < widths.length; ++i)
 				widths[i] = Math.max(widths[i], r.getString(i).length());
@@ -42,7 +42,7 @@ public class TextDataTableFormatter implements DataTableFormatter {
 		StringBuilder sb = new StringBuilder();
 		int j = 0;
 		int pad = getColPadding();
-		for (DataField fld : dt.fields)
+		for (DataField fld : dt.fields())
 			sb.append(GwtUtils.padString(fld.getName(), ' ', widths[j++])).append(GwtUtils.padString("", ' ', pad));
 		sb.append("\n");
 		for (int i = 0; i < widths.length; ++i)

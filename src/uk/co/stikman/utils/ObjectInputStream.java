@@ -35,9 +35,9 @@ public class ObjectInputStream implements Closeable {
 			byte b = in.readByte();
 			if (b == ObjectOutputStream.OBJECT_NULL)
 				return null;
-			Long id = new Long(in.readLong());
+			Long id = Long.valueOf(in.readLong());
 			if (b == ObjectOutputStream.OBJECT_LITERAL) {
-				T x = clazz.newInstance();
+				T x = clazz.getConstructor().newInstance();
 				objects.put(id, x);
 				x.fromStream(this, version);
 				return x;
@@ -46,7 +46,7 @@ public class ObjectInputStream implements Closeable {
 			} else
 				throw new IOException("Invalid stream");
 
-		} catch (InstantiationException | IllegalAccessException e) {
+		} catch (Exception e) {
 			throw new IOException("Failed to construct instance of " + clazz.getName() + " (does it have a visible no-arg constructor?)", e);
 		}
 	}
@@ -58,7 +58,7 @@ public class ObjectInputStream implements Closeable {
 			return null;
 
 		Class<T> cls;
-		Integer id = new Integer(in.readInt());
+		Integer id = Integer.valueOf(in.readInt());
 		if (b == ObjectOutputStream.CLASS_LITERAL) {
 			String name = readString();
 			try {

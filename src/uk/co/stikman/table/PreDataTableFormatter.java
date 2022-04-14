@@ -50,12 +50,12 @@ public class PreDataTableFormatter implements DataTableFormatter {
 	}
 
 	public String format(DataTable dt) {
-		int[] widths = new int[dt.fields.size()];
+		int[] widths = new int[dt.fields().size()];
 		for (int i = 0; i < widths.length; ++i) {
 			if (getFixedWidth(i) != -1)
 				widths[i] = getFixedWidth(i);
 			else
-				widths[i] = Math.max(getMinColWidth(), dt.fields.get(i).getName().length());
+				widths[i] = Math.max(getMinColWidth(), dt.fields().get(i).getName().length());
 		}
 		for (DataRecord r : dt)
 			for (int i = 0; i < widths.length; ++i)
@@ -66,7 +66,7 @@ public class PreDataTableFormatter implements DataTableFormatter {
 		sb.append("<pre>");
 		int j = 0;
 		int pad = getColPadding();
-		for (DataField fld : dt.fields) {
+		for (DataField fld : dt.fields()) {
 			String xtra = columnClasses.get(fld.getName());
 			xtra = xtra == null ? "" : (" " + xtra);
 			sb.append("<span class=\"" + styleHeader + xtra + "\">").append(escapeHTML(padString(fld.getName(), ' ', widths[j++]))).append("</span><span>").append(padString("", ' ', pad)).append("</span>");

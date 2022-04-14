@@ -14,6 +14,8 @@ public class DataRecordStorage extends DataRecord {
 
 	public DataRecordStorage(DataTable table, ValueStorage storage) {
 		super(table);
+		if (storage == null)
+			throw new IllegalArgumentException("Value Storage cannot be null.");
 		this.storage = storage;
 	}
 
@@ -36,6 +38,8 @@ public class DataRecordStorage extends DataRecord {
 
 	@Override
 	public Object getValue(int idx) {
+		if (idx >= indexes.size() || indexes.get(idx) == -1)
+			return null;
 		return storage.get(indexes.get(idx));
 	}
 

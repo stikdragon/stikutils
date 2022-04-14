@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,7 +41,7 @@ public class DataTable implements Iterable<DataRecord> {
 	private static final byte		DTMODE_SIMPLE	= 2;
 
 	private List<DataRecord>		records			= new ArrayList<>();
-	List<DataField>					fields			= new ArrayList<>();
+	private List<DataField>			fields			= new ArrayList<>();
 	private Map<String, DataField>	fieldMap		= new HashMap<>();
 	private ValueStorage			storage			= null;
 	private Map<KeySet, TableIndex>	indexes			= new HashMap<>();
@@ -71,13 +72,13 @@ public class DataTable implements Iterable<DataRecord> {
 		if (findField(name) != null)
 			throw new DataTableException("Field " + name + " already exists");
 		DataField df = new DataField(this, name);
-		df.setIndex(fields.size());
+		df.setIndex(fields().size());
 		df.setType(type);
 		df.setDisplay(display);
 		df.setMaxDisplayWidth(maxwidth);
 		if (type == DataType.STRING)
 			df.setAggregateMethod(AggregateMethod.MAX);
-		fields.add(df);
+		fields().add(df);
 		fieldMap.put(df.getName(), df);
 		return df;
 
@@ -97,7 +98,7 @@ public class DataTable implements Iterable<DataRecord> {
 	 * @return
 	 */
 	public DataField findField(String name) {
-		for (DataField df : fields)
+		for (DataField df : fields())
 			if (df.getName().equals(name))
 				return df;
 		return null;
@@ -110,7 +111,7 @@ public class DataTable implements Iterable<DataRecord> {
 	 * @return
 	 */
 	public DataField getField(String name) {
-		for (DataField df : fields)
+		for (DataField df : fields())
 			if (df.getName().equals(name))
 				return df;
 		throw new DataTableException("Field " + name + " not found");
@@ -144,7 +145,7 @@ public class DataTable implements Iterable<DataRecord> {
 	public DataTable aggregate(Set<DataField> keys) {
 		DataTable res = new DataTable();
 		Set<DataField> vals = new HashSet<>();
-		for (DataField fld : fields)
+		for (DataField fld : fields())
 			if (!keys.contains(fld))
 				vals.add(fld);
 		Map<KeySet, List<DataRecord>> map = new HashMap<>();
@@ -161,7 +162,7 @@ public class DataTable implements Iterable<DataRecord> {
 			lst.add(rec);
 		}
 
-		for (DataField fld : fields) {
+		for (DataField fld : fields()) {
 			DataField copy = res.addField(fld.getName());
 			copy.setType(fld.getType());
 		}
@@ -175,85 +176,85 @@ public class DataTable implements Iterable<DataRecord> {
 				output.setValue(f.getIndex(), first.getValue(f.getIndex()));
 			for (DataField f : vals) {
 				switch (f.getType()) {
-					case DOUBLE:
-						double d = first.getDouble(f.getIndex());
-						for (int idx = 1; idx < lst.size(); ++idx) {
-							DataRecord rec = lst.get(idx);
-							switch (f.getAggregateMethod()) {
-								case AVG:
-								case SUM:
-									d += rec.getDouble(f.getIndex());
-									break;
-								case MAX:
-									d = Math.max(d, rec.getDouble(f.getIndex()));
-									break;
-								case MIN:
-									d = Math.min(d, rec.getDouble(f.getIndex()));
-									break;
-							}
-						}
-						if (f.getAggregateMethod() == AggregateMethod.AVG)
-							d /= lst.size();
-						if (f.getAggregateMethod() == AggregateMethod.NONE)
-							d = 0.0;
-						output.setValue(f.getIndex(), d);
-						break;
-					case INT:
-						int n = first.getInt(f.getIndex());
-						for (int idx = 1; idx < lst.size(); ++idx) {
-							DataRecord rec = lst.get(idx);
-							switch (f.getAggregateMethod()) {
-								case AVG:
-								case SUM:
-									n += rec.getInt(f.getIndex());
-									break;
-								case MAX:
-									n = Math.max(n, rec.getInt(f.getIndex()));
-									break;
-								case MIN:
-									n = Math.min(n, rec.getInt(f.getIndex()));
-									break;
-							}
-						}
-						if (f.getAggregateMethod() == AggregateMethod.AVG)
-							n = (int) ((double) n) / lst.size();
-						if (f.getAggregateMethod() == AggregateMethod.NONE)
-							n = 0;
-						output.setValue(f.getIndex(), n);
-						break;
-					case STRING:
+				case DOUBLE:
+					double d = first.getDouble(f.getIndex());
+					for (int idx = 1; idx < lst.size(); ++idx) {
+						DataRecord rec = lst.get(idx);
 						switch (f.getAggregateMethod()) {
-							case MAX: {
-								String s = first.getString(f.getIndex());
-								for (int idx = 1; idx < lst.size(); ++idx) {
-									DataRecord rec = lst.get(idx);
-									String t = rec.getString(f.getIndex());
-									if (t.compareTo(s) > 0)
-										s = t;
-								}
-								output.setValue(f.getIndex(), s);
-								break;
-							}
-							case MIN: {
-								String s = first.getString(f.getIndex());
-								for (int idx = 1; idx < lst.size(); ++idx) {
-									DataRecord rec = lst.get(idx);
-									String t = rec.getString(f.getIndex());
-									if (t.compareTo(s) < 0)
-										s = t;
-								}
-								output.setValue(f.getIndex(), s);
-								break;
-							}
-							case NONE:
-							case SUM:
-							case AVG:
-							default:
-								break;
+						case AVG:
+						case SUM:
+							d += rec.getDouble(f.getIndex());
+							break;
+						case MAX:
+							d = Math.max(d, rec.getDouble(f.getIndex()));
+							break;
+						case MIN:
+							d = Math.min(d, rec.getDouble(f.getIndex()));
+							break;
 						}
+					}
+					if (f.getAggregateMethod() == AggregateMethod.AVG)
+						d /= lst.size();
+					if (f.getAggregateMethod() == AggregateMethod.NONE)
+						d = 0.0;
+					output.setValue(f.getIndex(), d);
+					break;
+				case INT:
+					int n = first.getInt(f.getIndex());
+					for (int idx = 1; idx < lst.size(); ++idx) {
+						DataRecord rec = lst.get(idx);
+						switch (f.getAggregateMethod()) {
+						case AVG:
+						case SUM:
+							n += rec.getInt(f.getIndex());
+							break;
+						case MAX:
+							n = Math.max(n, rec.getInt(f.getIndex()));
+							break;
+						case MIN:
+							n = Math.min(n, rec.getInt(f.getIndex()));
+							break;
+						}
+					}
+					if (f.getAggregateMethod() == AggregateMethod.AVG)
+						n = (n) / lst.size();
+					if (f.getAggregateMethod() == AggregateMethod.NONE)
+						n = 0;
+					output.setValue(f.getIndex(), n);
+					break;
+				case STRING:
+					switch (f.getAggregateMethod()) {
+					case MAX: {
+						String s = first.getString(f.getIndex());
+						for (int idx = 1; idx < lst.size(); ++idx) {
+							DataRecord rec = lst.get(idx);
+							String t = rec.getString(f.getIndex());
+							if (t.compareTo(s) > 0)
+								s = t;
+						}
+						output.setValue(f.getIndex(), s);
 						break;
+					}
+					case MIN: {
+						String s = first.getString(f.getIndex());
+						for (int idx = 1; idx < lst.size(); ++idx) {
+							DataRecord rec = lst.get(idx);
+							String t = rec.getString(f.getIndex());
+							if (t.compareTo(s) < 0)
+								s = t;
+						}
+						output.setValue(f.getIndex(), s);
+						break;
+					}
+					case NONE:
+					case SUM:
+					case AVG:
 					default:
 						break;
+					}
+					break;
+				default:
+					break;
 
 				}
 			}
@@ -300,11 +301,11 @@ public class DataTable implements Iterable<DataRecord> {
 	}
 
 	public String toString(boolean header, int firstNrows) {
-		int[] widths = new int[fields.size()];
-		Alignment[] alignments = new Alignment[fields.size()];
+		int[] widths = new int[fields().size()];
+		Alignment[] alignments = new Alignment[fields().size()];
 		for (int i = 0; i < widths.length; ++i) {
-			widths[i] = fields.get(i).getActualFieldDisplay().length();
-			alignments[i] = fields.get(i).getAlignment();
+			widths[i] = fields().get(i).getActualFieldDisplay().length();
+			alignments[i] = fields().get(i).getAlignment();
 		}
 		int cnt = 0;
 		for (DataRecord r : this) {
@@ -318,7 +319,7 @@ public class DataTable implements Iterable<DataRecord> {
 		// Apply maximum field widths
 		//
 		int k = 0;
-		for (DataField df : fields) {
+		for (DataField df : fields()) {
 			if (df.getMaxDisplayWidth() != -1 && df.getMaxDisplayWidth() < widths[k])
 				widths[k] = df.getMaxDisplayWidth();
 			++k;
@@ -327,7 +328,7 @@ public class DataTable implements Iterable<DataRecord> {
 		StringBuilder sb = new StringBuilder();
 		if (header) {
 			int j = 0;
-			for (DataField fld : fields)
+			for (DataField fld : fields())
 				sb.append(makeCell(fld.getActualFieldDisplay(), widths[j++], fld.getAlignment())).append("  ");
 			sb.append("\n");
 			for (int i = 0; i < widths.length; ++i)
@@ -379,7 +380,7 @@ public class DataTable implements Iterable<DataRecord> {
 
 	public DataTable filter(FilterCondition filter) {
 		DataTable res = new DataTable();
-		for (DataField fld : fields) {
+		for (DataField fld : fields()) {
 			DataField f = res.addField(fld.getName(), fld.getType());
 			f.setAggregateMethod(fld.getAggregateMethod());
 		}
@@ -447,7 +448,7 @@ public class DataTable implements Iterable<DataRecord> {
 	public DataRecord findRecord(int field, String value) {
 		TableIndex idx = null;
 		if (!indexes.isEmpty()) {
-			key0.keys[0] = fields.get(field).getName();
+			key0.keys[0] = fields().get(field).getName();
 			idx = indexes.get(key0);
 		}
 
@@ -479,13 +480,75 @@ public class DataTable implements Iterable<DataRecord> {
 	public DataRecord findRecord(String field, String value) {
 		return findRecord(findField(field).getIndex(), value);
 	}
+	
+	/**
+	 * <p>
+	 * Finds a record with specified field values. If there's more than one
+	 * record then it returns the first one it comes to.
+	 * <p>
+	 * If indexes are present on the table, then it uses them. See the doc for
+	 * {@link #createIndex(String...)}
+	 * 
+	 * @param field
+	 * @param value
+	 * @return
+	 */
+	public DataRecord findRecordByFieldIndices(Map<Integer, String> indexedValues) {
+		
+		KeySet k = new KeySet(indexedValues.size());
+		
+		TableIndex idx = null;
+		if (!indexes.isEmpty()) {
+			int i = 0;
+			for (Entry<Integer, String> e : indexedValues.entrySet())
+				k.keys[i++] = fields().get(e.getKey()).getName();
+			idx = indexes.get(k);
+		}
+
+		if (idx == null) {
+			a: for (DataRecord rec : records) {
+				for (Entry<Integer, String> e : indexedValues.entrySet()) {
+					String x = rec.getString(e.getKey());
+					String value = e.getValue();
+					if ((value == null && x != null) || (value != null && x == null) || (value != null && !value.equals(x)))
+						continue a;
+				}
+				return rec;
+			}
+			return null;
+		} else {
+			if (idx.isInvalid())
+				idx.rebuild();
+			int i = 0;
+			for (Entry<Integer, String> e : indexedValues.entrySet())
+				k.keys[i++] = e.getValue();
+			List<DataRecord> lst = idx.findBy(k);
+			if (lst.isEmpty())
+				return null;
+			return lst.get(0);
+		}
+	}
+
+	/**
+	 * See {@link #findRecordByFieldIndices(Map)}
+	 * 
+	 * @param field
+	 * @param value
+	 * @return
+	 */
+	public DataRecord findRecord(Map<String, String> keyValues) {
+		Map<Integer, String> m = new HashMap<>();
+		for (Entry<String, String> e : keyValues.entrySet())
+			m.put(findField(e.getKey()).getIndex(), e.getValue());
+		return findRecordByFieldIndices(m);
+	}
 
 	public int getFieldCount() {
-		return fields.size();
+		return fields().size();
 	}
 
 	public DataField getField(int idx) {
-		return fields.get(idx);
+		return fields().get(idx);
 	}
 
 	public void addFields(String... names) {
@@ -612,14 +675,14 @@ public class DataTable implements Iterable<DataRecord> {
 		//
 		for (DataRecord r : this)
 			r.removeValue(idx);
-		fields.remove(field);
+		fields().remove(field);
 		fieldMap.remove(field.getName());
 
 		//
 		// Re-index the remaining fields
 		//
 		idx = 0;
-		for (DataField df : fields)
+		for (DataField df : fields())
 			df.setIndex(idx++);
 	}
 
@@ -636,8 +699,8 @@ public class DataTable implements Iterable<DataRecord> {
 			os.write(DTMODE_SIMPLE);
 		}
 		try (DataOutputStream dos = new DataOutputStream(os)) {
-			dos.writeInt(fields.size());
-			for (DataField f : fields) {
+			dos.writeInt(fields().size());
+			for (DataField f : fields()) {
 				writeString(dos, f.getName());
 				writeString(dos, f.getDisplay());
 				writeString(dos, f.getType() == null ? null : f.getType().name());
@@ -721,7 +784,7 @@ public class DataTable implements Iterable<DataRecord> {
 			df.setAggregateMethod(AggregateMethod.valueOf(readString(dis)));
 			df.setIndex(dis.readInt());
 			df.setMaxDisplayWidth(dis.readInt());
-			fields.add(df);
+			fields().add(df);
 		}
 
 		if (mode == DTMODE_STORAGE) {
@@ -793,6 +856,10 @@ public class DataTable implements Iterable<DataRecord> {
 
 	void recordChanged(DataRecord r) {
 		invalidateIndexes();
+	}
+
+	public List<DataField> fields() {
+		return fields;
 	}
 
 }
