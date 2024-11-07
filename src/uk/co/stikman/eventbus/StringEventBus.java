@@ -6,7 +6,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * this is thread-safe in immediate mode, but not otherwise
+ */
 public class StringEventBus {
 	private static final class Subscriber {
 		String	key;
@@ -93,43 +98,59 @@ public class StringEventBus {
 	private static StringEventBus	INSTANCE;
 	private boolean					immediateMode		= false;
 	private boolean					enableStackTraces	= true;
+	private ReadWriteLock			lock				= new ReentrantReadWriteLock();
 
 	/**
-	 * Calling this twice for the same {@link Object} and {@link Method} will
-	 * have no effect
+	 * Calling this twice for the same {@link Object} and {@link Method} will have no effect
 	 * 
 	 * @param who
 	 */
 	public void register(Object who) {
-		if (subscriberObjects.contains(who))
-			return;
-		subscriberObjects.add(who);
-		Class<?> cls = who.getClass();
-		while (cls != null) {
-			registerMethods(who, cls);
-			cls = cls.getSuperclass();
+		lock.writeLock().lock();
+		try {
+			if (subscriberObjects.contains(who))
+				return;
+			subscriberObjects.add(who);
+			Class<?> cls = who.getClass();
+			while (cls != null) {
+				registerMethods(who, cls);
+				cls = cls.getSuperclass();
+			}
+		} finally {
+			lock.writeLock().unlock();
 		}
 	}
 
 	private void registerMethods(Object who, Class<?> cls) {
 		for (Method mthd : cls.getDeclaredMethods()) {
 			Subscribe an = mthd.getAnnotation(Subscribe.class);
-			if (an != null)
-				subscribers.add(new Subscriber(an.value(), mthd, who));
+			if (an != null) {
+				lock.writeLock().lock();
+				try {
+					subscribers.add(new Subscriber(an.value(), mthd, who));
+				} finally {
+					lock.writeLock().unlock();
+				}
+			}
 			// TODO: check number of parameters
 		}
 	}
 
 	public void unregister(Object who) {
-		Iterator<Subscriber> i = subscribers.iterator();
-		while (i.hasNext()) {
-			Subscriber x = i.next();
-			if (x.object.equals(who))
-				i.remove();
-		}
+		lock.readLock().lock();
+		try {
+			Iterator<Subscriber> i = subscribers.iterator();
+			while (i.hasNext()) {
+				Subscriber x = i.next();
+				if (x.object.equals(who))
+					i.remove();
+			}
 
-		if (!subscriberObjects.remove(who))
-			System.err.println("WARNING: StringEventBus.unregister(Object) called for object that was never registered");
+			if (!subscriberObjects.remove(who))
+				System.err.println("WARNING: StringEventBus.unregister(Object) called for object that was never registered");
+		} finally {
+			lock.readLock().unlock();
+		}
 	}
 
 	public void fire(String event) {
@@ -138,9 +159,14 @@ public class StringEventBus {
 
 	public void fire(String event, Object data) {
 		if (isImmediateMode()) {
-			for (Subscriber s : subscribers)
-				if (s.key.equals(event))
-					call(s, data);
+			lock.readLock().lock();
+			try {
+				for (Subscriber s : subscribers)
+					if (s.key.equals(event))
+						call(s, data);
+			} finally {
+				lock.readLock().unlock();
+			}
 		} else {
 			for (Subscriber s : subscribers)
 				if (s.key.equals(event))
@@ -148,7 +174,7 @@ public class StringEventBus {
 		}
 	}
 
-	private void call(Subscriber s, Object data) {
+	private static void call(Subscriber s, Object data) {
 		try {
 			if (s.method.getParameterCount() == 0)
 				s.method.invoke(s.object);
@@ -168,33 +194,42 @@ public class StringEventBus {
 	}
 
 	public boolean hasPendingEvents() {
-		return !pending.isEmpty();
+		lock.readLock().lock();
+		try {
+			return !pending.isEmpty();
+		} finally {
+			lock.readLock().unlock();
+		}
 	}
 
 	public void dispatch() {
-		List<Event> tmp = new ArrayList<>(pending);
-		pending.clear();
-		for (Event e : tmp) {
-			try {
-				call(e.subscriber, e.data);
-			} catch (Throwable th) {
-				if (e.callstack == null) {
-					System.err.println("Event dispatch failed. \"" + e.name + "\" Event's callstack is not available.");
-				} else {
-					System.err.println("Event dispatch failed. \"" + e.name + "\" Event fired at (exception follows):");
-					for (StackTraceElement x : e.callstack)
-						System.err.println("    " + x);
+		lock.readLock().lock();
+		try {
+			List<Event> tmp = new ArrayList<>(pending);
+			pending.clear();
+			for (Event e : tmp) {
+				try {
+					call(e.subscriber, e.data);
+				} catch (Throwable th) {
+					if (e.callstack == null) {
+						System.err.println("Event dispatch failed. \"" + e.name + "\" Event's callstack is not available.");
+					} else {
+						System.err.println("Event dispatch failed. \"" + e.name + "\" Event fired at (exception follows):");
+						for (StackTraceElement x : e.callstack)
+							System.err.println("    " + x);
+					}
+					throw th;
 				}
-				throw th;
 			}
+		} finally {
+			lock.readLock().unlock();
 		}
 	}
 
 	/**
-	 * In immediate mode calling {@link #fire(String, Object)} (or
-	 * {@link #fire(String)}) causes any subscribers to be called immediately.
-	 * When it's off (the default behaviour) it queues them up until you call
-	 * the {@link #dispatch()} method
+	 * In immediate mode calling {@link #fire(String, Object)} (or {@link #fire(String)}) causes any
+	 * subscribers to be called immediately. When it's off (the default behaviour) it queues them up
+	 * until you call the {@link #dispatch()} method
 	 * 
 	 * @return
 	 */
@@ -203,10 +238,9 @@ public class StringEventBus {
 	}
 
 	/**
-	 * In immediate mode calling {@link #fire(String, Object)} (or
-	 * {@link #fire(String)}) causes any subscribers to be called immediately.
-	 * When it's off (the default behaviour) it queues them up until you call
-	 * the {@link #dispatch()} method
+	 * In immediate mode calling {@link #fire(String, Object)} (or {@link #fire(String)}) causes any
+	 * subscribers to be called immediately. When it's off (the default behaviour) it queues them up
+	 * until you call the {@link #dispatch()} method
 	 * 
 	 * @return
 	 */
@@ -215,10 +249,9 @@ public class StringEventBus {
 	}
 
 	/**
-	 * When <code>true</code> each invocation of {@link #fire(String)} or
-	 * {@link #fire(String, Object)} records the stack trace at that point, so
-	 * that in the event of an exception being thrown it'll get logged for ease
-	 * of debugging
+	 * When <code>true</code> each invocation of {@link #fire(String)} or {@link #fire(String, Object)}
+	 * records the stack trace at that point, so that in the event of an exception being thrown it'll
+	 * get logged for ease of debugging
 	 * 
 	 */
 	public boolean isEnableStackTraces() {
@@ -226,10 +259,9 @@ public class StringEventBus {
 	}
 
 	/**
-	 * When <code>true</code> each invocation of {@link #fire(String)} or
-	 * {@link #fire(String, Object)} records the stack trace at that point, so
-	 * that in the event of an exception being thrown it'll get logged for ease
-	 * of debugging
+	 * When <code>true</code> each invocation of {@link #fire(String)} or {@link #fire(String, Object)}
+	 * records the stack trace at that point, so that in the event of an exception being thrown it'll
+	 * get logged for ease of debugging
 	 * 
 	 * @param enableStackTraces
 	 */

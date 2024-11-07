@@ -2,7 +2,14 @@ package uk.co.stikman.log;
 
 public class ConsoleLogTarget extends LogTarget {
 
-	private LogFormat	format	= new DefaultLogFormat();
+	private LogFormat format = new DefaultLogFormat();
+
+	public ConsoleLogTarget() {
+	}
+
+	public ConsoleLogTarget(LogFormat format) {
+		this.format = format;
+	}
 
 	@Override
 	public void log(LogEntry le) {

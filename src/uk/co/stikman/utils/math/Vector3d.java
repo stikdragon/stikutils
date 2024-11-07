@@ -1,12 +1,14 @@
 package uk.co.stikman.utils.math;
 
+import java.util.Objects;
+
 import uk.co.stikman.utils.GwtIncompatible;
 
 public class Vector3d {
 	public static final Vector3d	ZERO	= new Vector3d(0, 0, 0);
-	public double					x;
-	public double					y;
-	public double					z;
+	public double				x;
+	public double				y;
+	public double				z;
 
 	public Vector3d() {
 	}
@@ -24,7 +26,7 @@ public class Vector3d {
 	}
 
 	public final double length() {
-		return Math.sqrt((x * x) + (y * y) + (z * z));
+		return (double) Math.sqrt((x * x) + (y * y) + (z * z));
 	}
 
 	public final double lengthSquared() {
@@ -43,6 +45,23 @@ public class Vector3d {
 		y += v2.y;
 		z += v2.z;
 		return this;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(x, y, z);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Vector3d other = (Vector3d) obj;
+		return Double.doubleToLongBits(x) == Double.doubleToLongBits(other.x) && Double.doubleToLongBits(y) == Double.doubleToLongBits(other.y) && Double.doubleToLongBits(z) == Double.doubleToLongBits(other.z);
 	}
 
 	public final Vector3d sub(Vector3d v2, Vector3d dest) {
@@ -88,7 +107,15 @@ public class Vector3d {
 	}
 
 	public final Vector3d normalize() {
-		double in = (1.0f / Math.sqrt((x * x) + (y * y) + (z * z)));
+		double f = (double) Math.sqrt((x * x) + (y * y) + (z * z));
+		if (f == 0.0f) {
+			x = 0;
+			y = 0;
+			z = 0;
+			return this;
+		}
+
+		double in = 1.0f / f;
 		x *= in;
 		y *= in;
 		z *= in;
@@ -117,10 +144,11 @@ public class Vector3d {
 		return this;
 	}
 
-	public void copy(Vector3d v) {
+	public Vector3d copy(Vector3d v) {
 		this.x = v.x;
 		this.y = v.y;
 		this.z = v.z;
+		return this;
 	}
 
 	@Override
@@ -139,38 +167,6 @@ public class Vector3d {
 		return String.format("%." + dp + "f, %." + dp + "f, %." + dp + "f", x, y, z);
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		long temp;
-		temp = Double.doubleToLongBits(x);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(y);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(z);
-		result = prime * result + (int) (temp ^ (temp >>> 32));
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Vector3d other = (Vector3d) obj;
-		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
-			return false;
-		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
-			return false;
-		if (Double.doubleToLongBits(z) != Double.doubleToLongBits(other.z))
-			return false;
-		return true;
-	}
-
 	public double distanceSq(Vector3d v) {
 		double dx = v.x - x;
 		double dy = v.y - y;
@@ -178,7 +174,7 @@ public class Vector3d {
 		return dx * dx + dy * dy + dz * dz;
 	}
 
-	public Vector3d set(Vector4d v) {
+	public Vector3d set(Vector4 v) {
 		this.x = v.x;
 		this.y = v.y;
 		this.z = v.z;
@@ -189,6 +185,31 @@ public class Vector3d {
 		this.x += n.x * f;
 		this.y += n.y * f;
 		this.z += n.z * f;
+		return this;
+	}
+
+	public Vector3d add(double dx, double dy, double dz) {
+		x += dx;
+		y += dy;
+		z += dz;
+		return this;
+	}
+
+	public static Vector3d sub(Vector3d a, Vector3d b, Vector3d out) {
+		return a.sub(b, out);
+	}
+
+	public Vector3d copy(Vector3i v) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
+		return this;
+	}
+	
+	public Vector3d copy(Vector3 v) {
+		this.x = v.x;
+		this.y = v.y;
+		this.z = v.z;
 		return this;
 	}
 

@@ -6,8 +6,8 @@ public class Vector2d {
 	public static final Vector2d	ZERO	= new Vector2d(0, 0);
 	public static final Vector2d	ONE		= new Vector2d(1, 1);
 
-	public double				x;
-	public double				y;
+	public double					x;
+	public double					y;
 
 	public Vector2d() {
 	}
@@ -23,7 +23,7 @@ public class Vector2d {
 	}
 
 	public final double length() {
-		return  Math.sqrt((x * x) + (y * y));
+		return Math.sqrt((x * x) + (y * y));
 	}
 
 	public final double lengthSquared() {
@@ -35,13 +35,12 @@ public class Vector2d {
 		dest.y = y + v2.y;
 		return dest;
 	}
-	
+
 	public Vector2d add(Vector2d v, double scale, Vector2d res) {
 		res.x = x + v.x * scale;
 		res.y = y + v.y * scale;
 		return res;
 	}
-
 
 	public final Vector2d add(Vector2d v2) {
 		x += v2.x;
@@ -92,7 +91,14 @@ public class Vector2d {
 	}
 
 	public final Vector2d normalize() {
-		double in = (double) (1.0f / Math.sqrt((x * x) + (y * y)));
+		double f = Math.sqrt((x * x) + (y * y));
+		if (f == 0.0f) {
+			x = 0.0;
+			y = 0.0;
+			return this;
+		}
+
+		double in = (double) (1.0f / f);
 		x *= in;
 		y *= in;
 		return this;
@@ -101,7 +107,7 @@ public class Vector2d {
 	public final double dot(double vx, double vy) {
 		return vx * x + vy * y;
 	}
-	
+
 	public final double dot(Vector2d v) {
 		return v.x * x + v.y * y;
 	}
@@ -210,8 +216,8 @@ public class Vector2d {
 	}
 
 	/**
-	 * Returns the minimum of the given list. So it's really
-	 * "vec2(min(v.x), min(v.y))"
+	 * Returns the minimum of the given list. So it's really "vec2(min(v.x),
+	 * min(v.y))"
 	 * 
 	 * @param vs
 	 * @param out
@@ -235,8 +241,8 @@ public class Vector2d {
 	}
 
 	/**
-	 * Returns the maximum of the given list. So it's really
-	 * "vec2(max(v.x), max(v.y))"
+	 * Returns the maximum of the given list. So it's really "vec2(max(v.x),
+	 * max(v.y))"
 	 * 
 	 * @param vs
 	 * @param out
@@ -258,6 +264,5 @@ public class Vector2d {
 		}
 		return out.set(mx, my);
 	}
-
 
 }

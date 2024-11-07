@@ -1,6 +1,6 @@
 <project default="jar" xmlns:ivy="antlib:org.apache.ivy.ant">
 
-	<property name="version" value="3" />
+	<property name="version" value="7" />
 
 	<target name="clean">
 		<delete dir="build" />
@@ -33,7 +33,7 @@
 	<target name="jar" depends="compile">
 		<mkdir dir="build/jar" />
 
-		<jar destfile="build/jar/stikutils.jar">
+		<jar destfile="build/jar/stikutils-${version}.jar">
 			<fileset dir="build/classes" />
 			<fileset dir="src">
 				<!--<include name="**/*.java" />-->
